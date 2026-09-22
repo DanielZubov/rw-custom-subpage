@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Админка — <%= settings.brandName %></title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>:root { --primary: <%= settings.primaryColor %>; --accent: <%= settings.accentColor %>; }</style>
+</head>
+<body>
+  <div class="page admin-page">
+    <h1>Настройки страницы подписки</h1>
+
+    <% if (saved) { %><div class="alert alert-success">Сохранено.</div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+    <form method="POST" action="/admin">
+      <fieldset>
+        <legend>Бренд и оформление</legend>
+
+        <label>Название бренда
+          <input type="text" name="brandName" value="<%= settings.brandName %>" required />
+        </label>
+
+        <label>Заголовок вкладки браузера
+          <input type="text" name="siteTitle" value="<%= settings.siteTitle %>" required />
+        </label>
+
+        <label>URL логотипа (картинка, публично доступная ссылка)
+          <input type="url" name="logoUrl" value="<%= settings.logoUrl %>" placeholder="https://.../logo.png" />
+        </label>
+
+        <label>Основной цвет
+          <input type="color" name="primaryColor" value="<%= settings.primaryColor %>" />
+        </label>
+
+        <label>Акцентный цвет
+          <input type="color" name="accentColor" value="<%= settings.accentColor %>" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Поддержка и подвал</legend>
+        <label>Ссылка на поддержку
+          <input type="url" name="supportUrl" value="<%= settings.supportUrl %>" />
+        </label>
+        <label>Текст в подвале
+          <input type="text" name="footerText" value="<%= settings.footerText %>" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Приложения (вкладка «Устройства»)</legend>
+        <label>Список приложений в формате JSON
+          <textarea name="appsJson" rows="8"><%= JSON.stringify(settings.apps, null, 2) %></textarea>
+        </label>
+        <p class="hint">Формат: массив объектов <code>{"name": "...", "platform": "...", "url": "..."}</code>.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Вкладка «Роутер» (OpenWRT / Podkop / Forkop)</legend>
+        <label>Ключевое слово для определения роутерных пользователей
+          <input type="text" name="routerKeyword" value="<%= settings.routerKeyword %>" />
+        </label>
+        <p class="hint">Ищем без учёта регистра в <code>tag</code> пользователя и в названиях
+          его активных Internal Squad'ов в Remnawave. Например: <code>ROUTER</code>.</p>
+
+        <label>Инструкция (поддерживается Markdown)
+          <textarea name="routerInstructionsMarkdown" rows="16"><%= settings.routerInstructionsMarkdown %></textarea>
+        </label>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+  </div>
+</body>
+</html>

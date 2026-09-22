@@ -1,0 +1,21 @@
+{
+  "name": "leonvpn-subpage",
+  "version": "1.0.0",
+  "description": "Кастомная страница подписки для Remnawave (LeonVPN) с фирменным оформлением и отдельной вкладкой для роутеров (OpenWRT / Podkop / Forkop)",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-basic-auth": "^1.2.1",
+    "marked": "^13.0.3"
+  }
+}

@@ -1,0 +1,22 @@
+services:
+  leonvpn-subpage:
+    build: .
+    # Или, после первой публикации образа в свой registry:
+    # image: ghcr.io/your-org/leonvpn-subpage:latest
+    container_name: leonvpn-subpage
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3010:3010"
+    volumes:
+      - ./data:/app/data
+    networks:
+      - remnawave-network
+
+networks:
+  # Внешняя сеть, в которой уже живёт remnawave-backend — имя подставьте
+  # своё (docker network ls | grep remnawave), либо уберите networks и
+  # ports секции и подключитесь к панели по публичному https-адресу.
+  remnawave-network:
+    external: true

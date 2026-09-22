@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ru">
+<%- include('partials/head') %>
+<body>
+  <div class="page page-center">
+    <% if (settings.logoUrl) { %><img src="<%= settings.logoUrl %>" alt="<%= settings.brandName %>" class="brand-logo-lg" /><% } %>
+    <h1><%= settings.brandName %></h1>
+    <p class="hint">Это техническая страница подписок. Откройте персональную ссылку,
+      которую вам выдал бот или личный кабинет — она выглядит как
+      <code>https://<%= settings.brandName %>/&lt;ваш-ключ&gt;</code>.</p>
+    <%- include('partials/foot') %>
+  </div>
+</body>
+</html>

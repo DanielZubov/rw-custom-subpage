@@ -1,0 +1,13 @@
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= settings.siteTitle %></title>
+  <% if (settings.logoUrl) { %><link rel="icon" href="<%= settings.logoUrl %>" /><% } %>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    :root {
+      --primary: <%= settings.primaryColor %>;
+      --accent: <%= settings.accentColor %>;
+    }
+  </style>
+</head>

@@ -1,0 +1,25 @@
+<section id="tab-router" class="tab-panel">
+  <div class="router-instructions markdown-body">
+    <%- routerInstructionsHtml %>
+  </div>
+
+  <h2>Ссылка на подписку для Podkop / Forkop</h2>
+  <div class="copy-row">
+    <input type="text" readonly value="<%= subscriptionUrl %>" id="router-sub-url" />
+    <button type="button" class="btn btn-primary" data-copy="#router-sub-url">Скопировать</button>
+  </div>
+
+  <% if (rawKeys && rawKeys.length) { %>
+    <h2>Отдельные ключи подключения</h2>
+    <p class="hint">Если ваш клиент на роутере не умеет читать ссылку на подписку целиком —
+      скопируйте нужный ключ вручную.</p>
+    <ul class="keys-list">
+      <% rawKeys.forEach(function(key, i) { %>
+        <li class="key-row">
+          <input type="text" readonly value="<%= key %>" id="key-<%= i %>" />
+          <button type="button" class="btn btn-secondary" data-copy="#key-<%= i %>">Копировать</button>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
