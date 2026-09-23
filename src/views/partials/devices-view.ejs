@@ -1,0 +1,43 @@
+<section id="view-devices">
+  <h2>Ваше устройство: <span id="detected-platform-label"><%= platformLabel %></span></h2>
+  <p class="hint">Определили автоматически. Если это не то устройство, на котором вы будете
+    пользоваться VPN — выберите нужное ниже.</p>
+
+  <div class="platform-switch" role="group" aria-label="Выбор платформы">
+    <button type="button" class="platform-btn <%= platform === 'ios' ? 'active' : '' %>" data-platform="ios">iOS</button>
+    <button type="button" class="platform-btn <%= platform === 'android' ? 'active' : '' %>" data-platform="android">Android</button>
+    <button type="button" class="platform-btn <%= platform === 'windows' ? 'active' : '' %>" data-platform="windows">Windows</button>
+    <button type="button" class="platform-btn <%= platform === 'macos' ? 'active' : '' %>" data-platform="macos">macOS</button>
+    <button type="button" class="platform-btn <%= platform === 'linux' ? 'active' : '' %>" data-platform="linux">Linux</button>
+  </div>
+
+  <div class="apps-guide">
+    <% appCards.forEach(function(app, i) { %>
+      <div class="app-guide-card <%= i === 0 ? 'is-primary' : '' %>" data-app-id="<%= app.id %>">
+        <div class="app-guide-head">
+          <span class="app-guide-name"><%= app.name %></span>
+          <% if (i === 0) { %><span class="badge">Рекомендуем</span><% } %>
+        </div>
+        <div class="app-guide-actions">
+          <a class="btn btn-primary app-install-btn" href="<%= app.installUrl %>" target="_blank" rel="noopener">
+            1. Установить <%= app.name %>
+          </a>
+          <a class="btn btn-secondary app-add-btn" href="<%= app.addUrl %>">
+            2. Добавить подписку
+          </a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <% if (settings.showSubscriptionLinkOnDevicesTab) { %>
+    <h2>Ссылка на подписку</h2>
+    <p class="hint">Если приложение не подхватило подписку кнопкой выше — вставьте эту ссылку вручную.</p>
+    <div class="copy-row">
+      <input type="text" readonly value="<%= subscriptionUrl %>" id="sub-url" />
+      <button type="button" class="btn btn-secondary" data-copy="#sub-url">Скопировать</button>
+    </div>
+  <% } %>
+
+  <script type="application/json" id="apps-data"><%- JSON.stringify({ apps: settings.apps, subscriptionUrl: subscriptionUrl }).replace(/</g, '\\u003c') %></script>
+</section>

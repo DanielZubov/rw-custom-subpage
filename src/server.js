@@ -14,6 +14,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true, limit: '512kb' }));
 app.use(express.json({ limit: '512kb' }));
 app.use('/static', express.static(path.join(__dirname, '..', 'public')));
+// Локально загруженные через /admin логотип/favicon (persist-том data/uploads)
+app.use('/uploads', express.static(path.join(__dirname, '..', 'data', 'uploads')));
 
 // Простая проверка живости для реверс-прокси/докера
 app.get('/healthz', (req, res) => res.json({ ok: true }));

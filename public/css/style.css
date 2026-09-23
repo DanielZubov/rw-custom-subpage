@@ -25,21 +25,16 @@ html, body {
 .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5c5c; display: inline-block; }
 .is-active .status-dot { background: var(--accent, #00d1b2); }
-.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 20px; }
+.status-grid > div { min-width: 0; }
 .status-grid .label { display: block; font-size: 12px; opacity: 0.6; }
-.status-grid .value { display: block; font-size: 15px; font-weight: 600; }
-
-.tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.tab-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-  color: #f2f2f8; padding: 10px 16px; border-radius: 12px; cursor: pointer; font-size: 14px;
+.status-grid .value {
+  display: block; font-size: 15px; font-weight: 600;
+  overflow-wrap: anywhere; word-break: break-word; line-height: 1.35;
 }
-.tab-btn.active { background: var(--primary, #6c5ce7); border-color: transparent; }
-
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
 
 h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
+.router-title { font-size: 20px; margin-top: 0; }
 .hint { font-size: 13px; opacity: 0.6; line-height: 1.5; }
 
 .copy-row { display: flex; gap: 8px; margin-bottom: 8px; }
@@ -53,14 +48,27 @@ h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
 .btn-secondary { background: rgba(255,255,255,0.1); color: #f2f2f8; }
 .btn:active { transform: scale(0.97); }
 
-.apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.app-card {
-  display: block; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; padding: 14px; text-decoration: none; color: inherit;
+.platform-switch { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.platform-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+  color: #f2f2f8; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px;
 }
-.app-card:hover { border-color: var(--primary, #6c5ce7); }
-.app-name { display: block; font-weight: 600; margin-bottom: 4px; }
-.app-platform { display: block; font-size: 12px; opacity: 0.6; }
+.platform-btn.active { background: var(--primary, #6c5ce7); border-color: transparent; }
+
+.apps-guide { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+.app-guide-card {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 16px;
+}
+.app-guide-card.is-primary { border-color: var(--primary, #6c5ce7); background: rgba(108,92,231,0.10); }
+.app-guide-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.app-guide-name { font-weight: 700; font-size: 16px; }
+.badge {
+  font-size: 11px; background: var(--accent, #00d1b2); color: #08211d;
+  padding: 2px 8px; border-radius: 999px; font-weight: 600;
+}
+.app-guide-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-guide-actions .btn { flex: 1; min-width: 140px; text-align: center; text-decoration: none; }
 
 .keys-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .key-row { display: flex; gap: 8px; }
@@ -85,6 +93,9 @@ h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
   font-size: 13px; font-family: inherit;
 }
 .admin-page input[type=color] { margin-top: 6px; width: 60px; height: 34px; border: none; background: none; }
+.admin-page input[type=file] { color: #f2f2f8; font-size: 12px; }
+.admin-page .checkbox-label { display: flex; align-items: center; gap: 8px; }
+.admin-page .checkbox-label input[type=checkbox] { width: 16px; height: 16px; margin: 0; }
 .alert { padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
 .alert-success { background: rgba(0,209,178,0.15); border: 1px solid rgba(0,209,178,0.4); }
 .alert-error { background: rgba(255,92,92,0.15); border: 1px solid rgba(255,92,92,0.4); }

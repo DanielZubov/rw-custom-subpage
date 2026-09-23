@@ -31,35 +31,10 @@
       </div>
     </section>
 
-    <nav class="tabs" role="tablist">
-      <button class="tab-btn active" data-tab="devices" type="button">📱 Устройства</button>
-      <% if (showRouterTab) { %>
-        <button class="tab-btn" data-tab="router" type="button">📡 Роутер (OpenWRT)</button>
-      <% } %>
-    </nav>
-
-    <section id="tab-devices" class="tab-panel active">
-      <h2>Ссылка на подписку</h2>
-      <p class="hint">Вставьте эту ссылку в приложение вручную или откройте её на телефоне —
-        поддерживаемое приложение подхватит её само.</p>
-      <div class="copy-row">
-        <input type="text" readonly value="<%= subscriptionUrl %>" id="sub-url" />
-        <button type="button" class="btn btn-primary" data-copy="#sub-url">Скопировать</button>
-      </div>
-
-      <h2>Рекомендуемые приложения</h2>
-      <div class="apps-grid">
-        <% (settings.apps || []).forEach(function(app) { %>
-          <a class="app-card" href="<%= app.url %>" target="_blank" rel="noopener">
-            <span class="app-name"><%= app.name %></span>
-            <span class="app-platform"><%= app.platform %></span>
-          </a>
-        <% }) %>
-      </div>
-    </section>
-
     <% if (showRouterTab) { %>
-      <%- include('partials/router-tab', { subscriptionUrl, rawKeys, settings, routerInstructionsHtml }) %>
+      <%- include('partials/router-view', { subscriptionUrl, rawKeys, settings, routerInstructionsHtml }) %>
+    <% } else { %>
+      <%- include('partials/devices-view', { settings, subscriptionUrl, appCards, platform, platformLabel }) %>
     <% } %>
 
     <%- include('partials/foot') %>

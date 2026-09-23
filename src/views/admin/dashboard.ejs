@@ -14,7 +14,7 @@
     <% if (saved) { %><div class="alert alert-success">Сохранено.</div><% } %>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
-    <form method="POST" action="/admin">
+    <form method="POST" action="/admin" enctype="multipart/form-data">
       <fieldset>
         <legend>Бренд и оформление</legend>
 
@@ -26,9 +26,25 @@
           <input type="text" name="siteTitle" value="<%= settings.siteTitle %>" required />
         </label>
 
-        <label>URL логотипа (картинка, публично доступная ссылка)
-          <input type="url" name="logoUrl" value="<%= settings.logoUrl %>" placeholder="https://.../logo.png" />
+        <label>Логотип — ссылка на изображение
+          <input type="url" name="logoUrl" value="<%= settings.logoUrl.startsWith('/uploads/') ? '' : settings.logoUrl %>" placeholder="https://.../logo.png" />
         </label>
+        <label>...или загрузить файл (заменит ссылку выше)
+          <input type="file" name="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+        </label>
+        <% if (settings.logoUrl) { %>
+          <p class="hint">Текущий логотип: <img src="<%= settings.logoUrl %>" alt="" style="height:28px;vertical-align:middle;border-radius:6px;margin-left:6px;" /></p>
+        <% } %>
+
+        <label>Favicon — ссылка на изображение
+          <input type="url" name="faviconUrl" value="<%= settings.faviconUrl.startsWith('/uploads/') ? '' : settings.faviconUrl %>" placeholder="https://.../favicon.png" />
+        </label>
+        <label>...или загрузить файл (заменит ссылку выше)
+          <input type="file" name="faviconFile" accept="image/png,image/x-icon,image/svg+xml" />
+        </label>
+        <% if (settings.faviconUrl) { %>
+          <p class="hint">Текущий favicon: <img src="<%= settings.faviconUrl %>" alt="" style="height:20px;vertical-align:middle;border-radius:4px;margin-left:6px;" /></p>
+        <% } %>
 
         <label>Основной цвет
           <input type="color" name="primaryColor" value="<%= settings.primaryColor %>" />
@@ -50,11 +66,25 @@
       </fieldset>
 
       <fieldset>
-        <legend>Приложения (вкладка «Устройства»)</legend>
-        <label>Список приложений в формате JSON
-          <textarea name="appsJson" rows="8"><%= JSON.stringify(settings.apps, null, 2) %></textarea>
+        <legend>Вкладка «Устройства»</legend>
+        <label class="checkbox-label">
+          <input type="checkbox" name="showSubscriptionLinkOnDevicesTab" <%= settings.showSubscriptionLinkOnDevicesTab ? 'checked' : '' %> />
+          Показывать сырую ссылку на подписку на вкладке «Устройства»
         </label>
-        <p class="hint">Формат: массив объектов <code>{"name": "...", "platform": "...", "url": "..."}</code>.</p>
+        <p class="hint">По умолчанию выключено — пользователю показываются только кнопки
+          «Установить» и «Добавить подписку» под его платформу. На вкладке «Роутер» ссылка
+          показывается всегда, независимо от этой настройки.</p>
+
+        <label>Список приложений в формате JSON
+          <textarea name="appsJson" rows="16"><%= JSON.stringify(settings.apps, null, 2) %></textarea>
+        </label>
+        <p class="hint">
+          Формат каждого приложения:
+          <code>{"id": "happ", "name": "Happ", "addScheme": "happ://add/{url}", "install": {"ios": "...", "android": "...", "windows": "...", "macos": "...", "linux": "..."}}</code>.
+          <code>addScheme</code> — шаблон deep-link'а для кнопки «Добавить подписку»,
+          <code>{url}</code> подставится настоящей ссылкой на подписку. Можно добавлять свои
+          приложения — просто допишите объект в массив.
+        </p>
       </fieldset>
 
       <fieldset>
@@ -63,7 +93,8 @@
           <input type="text" name="routerKeyword" value="<%= settings.routerKeyword %>" />
         </label>
         <p class="hint">Ищем без учёта регистра в <code>tag</code> пользователя и в названиях
-          его активных Internal Squad'ов в Remnawave. Например: <code>ROUTER</code>.</p>
+          его активных Internal Squad'ов в Remnawave. Например: <code>ROUTER</code>.
+          Таким пользователям вкладка «Устройства» не показывается вообще — только эта страница.</p>
 
         <label>Инструкция (поддерживается Markdown)
           <textarea name="routerInstructionsMarkdown" rows="16"><%= settings.routerInstructionsMarkdown %></textarea>

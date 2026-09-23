@@ -9,22 +9,31 @@ const config = require('./config');
  *    пользователя по shortUuid (в публичном /api/sub этого нет).
  *  - Публичные (`/api/sub/...`) — без авторизации, ровно то же самое, что
  *    дергает официальная remnawave/subscription-page и клиентские приложения.
+ *
+ * ВАЖНО про User-Agent: панель выбирает формат ответа /api/sub/{shortUuid}
+ * по заголовку User-Agent запроса (Mihomo/Xray-json/Sing-box/Base64, для
+ * браузеров — отдельное поведение). Наш бэкенд сам не браузер и не один из
+ * этих клиентов, поэтому явно представляемся обычным приложением, которое
+ * панель понимает как "отдать построчный список ключей" — иначе можно
+ * получить служебную заглушку вместо реальных ключей.
  */
 
-async function apiFetch(path, { auth = false } = {}) {
+const RAW_KEYS_USER_AGENT = 'Happ/4.9.0 (Linux; U; Android 13)';
+
+async function apiFetch(path, { auth = false, headers = {} } = {}) {
   if (!config.remnawave.apiUrl) {
     throw new Error('REMNAWAVE_API_URL не задан в .env');
   }
   const url = `${config.remnawave.apiUrl}${path}`;
-  const headers = { Accept: 'application/json' };
+  const finalHeaders = { Accept: 'application/json', ...headers };
   if (auth) {
     if (!config.remnawave.apiToken) {
       throw new Error('REMNAWAVE_API_TOKEN не задан в .env');
     }
-    headers.Authorization = `Bearer ${config.remnawave.apiToken}`;
+    finalHeaders.Authorization = `Bearer ${config.remnawave.apiToken}`;
   }
 
-  const res = await fetch(url, { headers });
+  const res = await fetch(url, { headers: finalHeaders });
   return res;
 }
 
@@ -58,14 +67,24 @@ async function getSubscriptionInfo(shortUuid) {
   return body.response || body;
 }
 
+// Панель отдаёт этот "шуточный" плейсхолдер-ключ, когда реальную
+// конфигурацию построить не из чего (нет ни одного рабочего хоста
+// в активных squad'ах пользователя) — вместо ошибки. Распознаём его по
+// характерному адресу 0.0.0.0 и отфильтровываем, чтобы не показывать
+// пользователю мусор вместо ключей.
+function isPlaceholderKey(line) {
+  return /@0\.0\.0\.0[:/]/i.test(line) || /uuid=00000000-0000-0000-0000-000000000000/i.test(line);
+}
+
 /**
- * Сырой список ключей подписки (vless://, ss:// и т.д.), в формате base64
- * — тот же ответ, что получает клиент с неопознанным User-Agent.
+ * Сырой список ключей подписки (vless://, ss:// и т.д.).
  * Используется для вкладки "Роутер", где ключи нужно показать текстом
  * для ручной вставки в Podkop/Forkop.
  */
 async function getRawKeys(shortUuid) {
-  const res = await apiFetch(`/api/sub/${encodeURIComponent(shortUuid)}`);
+  const res = await apiFetch(`/api/sub/${encodeURIComponent(shortUuid)}`, {
+    headers: { 'User-Agent': RAW_KEYS_USER_AGENT },
+  });
   if (!res.ok) return [];
   const text = await res.text();
   let decoded = text;
@@ -80,7 +99,8 @@ async function getRawKeys(shortUuid) {
   return decoded
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0 && line.includes('://'));
+    .filter((line) => line.length > 0 && line.includes('://'))
+    .filter((line) => !isPlaceholderKey(line));
 }
 
 function buildSubscriptionUrl(shortUuid) {

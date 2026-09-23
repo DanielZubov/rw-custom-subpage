@@ -4,31 +4,61 @@ const config = require('./config');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
+
+// Приложения по умолчанию — только Happ и INCY, как и просили.
+// addScheme: шаблон deep-link'а для добавления подписки, {url} подставляется
+// сырой (без урл-энкодинга) ссылкой на подписку — так ждут оба клиента.
+const DEFAULT_APPS = [
+  {
+    id: 'happ',
+    name: 'Happ',
+    addScheme: 'happ://add/{url}',
+    install: {
+      ios: 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215',
+      android: 'https://play.google.com/store/apps/details?id=com.happproxy',
+      windows: 'https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe',
+      macos: 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215',
+      linux: 'https://github.com/Happ-proxy/happ-desktop/releases/latest',
+    },
+  },
+  {
+    id: 'incy',
+    name: 'INCY',
+    addScheme: 'incy://add/{url}',
+    install: {
+      ios: 'https://apps.apple.com/app/incy/id6756943388',
+      android: 'https://incy.cc/',
+      windows: 'https://incy.cc/',
+      macos: 'https://incy.cc/',
+      linux: 'https://incy.cc/',
+    },
+  },
+];
 
 const DEFAULT_SETTINGS = {
   brandName: 'LeonVPN',
   siteTitle: 'LeonVPN — моя подписка',
+
+  // Логотип/favicon: либо внешняя ссылка, либо локально загруженный файл
+  // (тогда тут будет путь вида /uploads/xxxxx.png — см. admin.js).
   logoUrl: '',
+  faviconUrl: '',
+
   primaryColor: '#6C5CE7',
   accentColor: '#00D1B2',
   supportUrl: 'https://t.me/leonvpn_support',
   footerText: '© LeonVPN. Все ключи доступны только вам по персональной ссылке.',
 
+  // Показывать ли сырую ссылку на подписку на вкладке "Устройства".
+  // На вкладке "Роутер" ссылка показывается всегда — она нужна для Podkop/Forkop.
+  showSubscriptionLinkOnDevicesTab: false,
+
   // Ключевое слово для определения "роутерных" пользователей.
-  // Ищем без учёта регистра в tag пользователя и в названиях его
-  // активных Internal Squad'ов.
   routerKeyword: config.routerKeywordDefault || 'ROUTER',
 
-  // Список приложений, которые показываем на обычной вкладке.
-  apps: [
-    { name: 'Happ', platform: 'iOS / Android / Windows / macOS', url: 'https://happ.su/' },
-    { name: 'v2rayNG', platform: 'Android', url: 'https://github.com/2dust/v2rayNG/releases' },
-    { name: 'Shadowrocket', platform: 'iOS', url: 'https://apps.apple.com/app/shadowrocket/id932747118' },
-    { name: 'Karing', platform: 'iOS / Android / Windows / macOS', url: 'https://github.com/KaringX/karing/releases' },
-    { name: 'NekoBox', platform: 'Windows / Linux', url: 'https://github.com/MatsuriDayo/nekoray/releases' },
-  ],
+  apps: DEFAULT_APPS,
 
-  // Markdown-инструкция для вкладки "Роутер (OpenWRT)". Редактируется в /admin.
   routerInstructionsMarkdown: `### Установка Podkop на OpenWRT
 
 1. Подключитесь к роутеру по SSH.
@@ -54,21 +84,32 @@ Xray/VLESS-ссылок. Уточните команду установки в �
 > Не можете разобраться? Напишите в поддержку — ссылка внизу страницы.`,
 };
 
-function ensureFile() {
+function ensureDirs() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   if (!fs.existsSync(SETTINGS_FILE)) {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(DEFAULT_SETTINGS, null, 2), 'utf8');
   }
 }
 
+// Апгрейд настроек, сохранённых старой версией приложения (формат apps был
+// { name, platform, url } — без install/addScheme). Если находим старый
+// формат, тихо подменяем на новые дефолтные приложения, чтобы страница не
+// падала на undefined.
+function migrateApps(apps) {
+  if (!Array.isArray(apps) || apps.length === 0) return DEFAULT_APPS;
+  const looksNew = apps.every((a) => a && typeof a === 'object' && a.install && a.addScheme);
+  return looksNew ? apps : DEFAULT_APPS;
+}
+
 function getSettings() {
-  ensureFile();
+  ensureDirs();
   try {
     const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
     const saved = JSON.parse(raw);
-    // Подмешиваем дефолты — так после обновления образа новые поля
-    // (например, новое приложение по умолчанию) не потеряются молча.
-    return { ...DEFAULT_SETTINGS, ...saved };
+    const merged = { ...DEFAULT_SETTINGS, ...saved };
+    merged.apps = migrateApps(merged.apps);
+    return merged;
   } catch (e) {
     console.error('[db] Не удалось прочитать settings.json, используем значения по умолчанию', e);
     return { ...DEFAULT_SETTINGS };
@@ -76,11 +117,11 @@ function getSettings() {
 }
 
 function saveSettings(partial) {
-  ensureFile();
+  ensureDirs();
   const current = getSettings();
   const next = { ...current, ...partial };
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2), 'utf8');
   return next;
 }
 
-module.exports = { getSettings, saveSettings, DEFAULT_SETTINGS };
+module.exports = { getSettings, saveSettings, DEFAULT_SETTINGS, UPLOADS_DIR };

@@ -1,4 +1,6 @@
-<section id="tab-router" class="tab-panel">
+<section id="view-router">
+  <h2 class="router-title">📡 Настройка роутера (OpenWRT)</h2>
+
   <div class="router-instructions markdown-body">
     <%- routerInstructionsHtml %>
   </div>
@@ -21,5 +23,11 @@
         </li>
       <% }) %>
     </ul>
+  <% } else { %>
+    <div class="alert alert-error">
+      Персональные ключи подключения сейчас недоступны. Обычно это значит, что
+      для вашего тарифа ещё не подключены рабочие серверы — напишите в поддержку,
+      ссылка ниже.
+    </div>
   <% } %>
 </section>

@@ -4,3 +4,5 @@ data/settings.json
 npm-debug.log
 *.log
 .DS_Store
+data/uploads/*
+!data/uploads/.gitkeep
