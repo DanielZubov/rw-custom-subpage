@@ -72,8 +72,9 @@ HTML. Поэтому сервис не просто рисует страниц�
 ## Быстрый старт
 
 ```bash
-git clone <этот репозиторий>
-cd leonvpn-subpage
+cd /opt
+git clone https://github.com/DanielZubov/rw-custom-subpage.git
+cd rw-custom-subpage
 cp .env.example .env
 # отредактируйте .env: REMNAWAVE_API_URL, REMNAWAVE_API_TOKEN, SUB_PUBLIC_DOMAIN,
 # ADMIN_LOGIN / ADMIN_PASSWORD
@@ -93,7 +94,7 @@ docker compose up -d --build
 ### Подключение к сети Remnawave
 
 Если панель и этот сервис — в одном docker-compose проекте, добавьте
-`leonvpn-subpage` в тот же `docker-compose.yml`, что и `remnawave`, и укажите
+`rw-custom-subpage` в тот же `docker-compose.yml`, что и `remnawave`, и укажите
 `REMNAWAVE_API_URL=http://remnawave:3000` (имя контейнера панели во внутренней
 сети). Если это отдельный проект — используйте `external network` (см.
 `docker-compose.yml` в репозитории) или публичный HTTPS-адрес панели.
@@ -102,11 +103,11 @@ docker compose up -d --build
 
 В настройках вашего Caddy/Nginx, где раньше запросы браузера на
 `SUB_PUBLIC_DOMAIN` проксировались на `remnawave-subscription-page:3010`,
-поменяйте upstream на `leonvpn-subpage:3010`. Пример для Caddy:
+поменяйте upstream на `rw-custom-subpage:3010`. Пример для Caddy:
 
 ```caddyfile
 sub.leonvpn.example {
-    reverse_proxy leonvpn-subpage:3010
+    reverse_proxy rw-custom-subpage:3010
 }
 ```
 
