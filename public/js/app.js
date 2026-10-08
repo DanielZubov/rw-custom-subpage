@@ -17,17 +17,15 @@ document.addEventListener('DOMContentLoaded', function () {
         b.classList.toggle('active', b.getAttribute('data-platform') === platform);
       });
 
+      // "Добавить подписку" — это deep-link (happ://add/..., incy://crypt1/...),
+      // он не зависит от платформы и может быть зашифрован сервером заранее,
+      // поэтому при смене платформы трогаем только кнопку "Установить".
       (appsData.apps || []).forEach(function (app) {
         var card = document.querySelector('.app-guide-card[data-app-id="' + app.id + '"]');
         if (!card) return;
         var install = (app.install && (app.install[platform] || app.install.android || app.install.ios)) || '';
-        var add = appsData.subscriptionUrl && app.addScheme
-          ? app.addScheme.replace('{url}', appsData.subscriptionUrl)
-          : '';
         var installBtn = card.querySelector('.app-install-btn');
-        var addBtn = card.querySelector('.app-add-btn');
         if (installBtn) installBtn.href = install;
-        if (addBtn) addBtn.href = add;
       });
     }
 

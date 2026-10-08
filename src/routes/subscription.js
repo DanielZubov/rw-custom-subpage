@@ -1,6 +1,7 @@
 const express = require('express');
 const { marked } = require('marked');
 const rw = require('../remnawaveClient');
+const cryptoLinks = require('../cryptoLinks');
 const { getSettings } = require('../db');
 
 const router = express.Router();
@@ -8,6 +9,14 @@ const router = express.Router();
 // Короткий UUID Remnawave — обычный uuid v4. На всякий случай не пускаем
 // в API мусор из URL (например, запросы браузера на /favicon.ico).
 const SHORT_UUID_RE = /^[a-zA-Z0-9-]{6,64}$/;
+
+const HOP_BY_HOP_HEADERS = new Set([
+  'connection',
+  'keep-alive',
+  'transfer-encoding',
+  'content-encoding',
+  'content-length',
+]);
 
 function isRouterUser(user, keyword) {
   if (!keyword) return false;
@@ -28,8 +37,6 @@ function formatBytes(bytes) {
 }
 
 // Грубое, но достаточное для UX определение платформы по User-Agent.
-// Порядок проверок важен: у Android UA тоже встречается "Linux", поэтому
-// его проверяем раньше.
 function detectPlatform(userAgent) {
   const ua = (userAgent || '').toLowerCase();
   if (/iphone|ipad|ipod/.test(ua)) return 'ios';
@@ -38,6 +45,13 @@ function detectPlatform(userAgent) {
   if (/windows/.test(ua)) return 'windows';
   if (/linux/.test(ua)) return 'linux';
   return 'unknown';
+}
+
+// Все современные браузеры (десктоп и мобильные) шлют "Mozilla/5.0..." —
+// это и используем, чтобы отличить человека от VPN-приложения. У
+// VPN-клиентов (Happ, INCY, v2rayNG, ClashMeta и т.п.) такого токена нет.
+function isBrowserUA(userAgent) {
+  return /mozilla/i.test(userAgent || '');
 }
 
 const PLATFORM_LABELS = {
@@ -50,28 +64,61 @@ const PLATFORM_LABELS = {
 };
 
 // Собираем для каждого настроенного приложения (Happ, INCY, ...) готовые
-// ссылки под конкретную платформу — чтобы шаблон ничего сам не решал.
-function buildAppCards(apps, subscriptionUrl, platform) {
-  return (apps || []).map((app) => {
-    const installUrl =
-      (app.install && (app.install[platform] || app.install.android || app.install.ios)) || '';
-    const addUrl = subscriptionUrl ? (app.addScheme || '').replace('{url}', subscriptionUrl) : '';
-    return {
-      id: app.id,
-      name: app.name,
-      installUrl,
-      addUrl,
-    };
-  });
+// ссылки под конкретную платформу — по возможности зашифрованные.
+async function buildAppCards(apps, subscriptionUrl, platform, brandName) {
+  return Promise.all(
+    (apps || []).map(async (app) => {
+      const installUrl =
+        (app.install && (app.install[platform] || app.install.android || app.install.ios)) || '';
+
+      const plainAddUrl = subscriptionUrl
+        ? (app.addScheme || '').replace('{url}', subscriptionUrl)
+        : '';
+
+      let addUrl = plainAddUrl;
+      let encrypted = false;
+
+      if (subscriptionUrl && app.cryptoProvider === 'happ') {
+        const crypt = await cryptoLinks.getHappCryptLink(subscriptionUrl);
+        if (crypt) { addUrl = crypt; encrypted = true; }
+      } else if (subscriptionUrl && app.cryptoProvider === 'incy') {
+        const crypt = cryptoLinks.getIncyCryptLink(subscriptionUrl, brandName);
+        if (crypt) { addUrl = crypt; encrypted = true; }
+      }
+
+      return { id: app.id, name: app.name, installUrl, addUrl, encrypted };
+    })
+  );
 }
 
 router.get('/:shortUuid', async (req, res, next) => {
   const { shortUuid } = req.params;
-  const settings = getSettings();
 
   if (!SHORT_UUID_RE.test(shortUuid)) {
-    return res.status(404).render('errors/not-found', { settings });
+    return res.status(404).render('errors/not-found', { settings: getSettings() });
   }
+
+  // Не-браузерные клиенты (VPN-приложения) получают "сырую" подписку
+  // напрямую с панели — прозрачный проброс байт в байт, без рендеринга
+  // HTML. Благодаря этому SUB_PUBLIC_DOMAIN можно указывать на ЭТОТ же
+  // сервис — отдельный домен под саму панель не нужен.
+  if (!isBrowserUA(req.headers['user-agent'])) {
+    try {
+      const upstream = await rw.proxyRawSubscription(shortUuid, {
+        userAgent: req.headers['user-agent'],
+        accept: req.headers['accept'],
+      });
+      res.status(upstream.status);
+      Object.entries(upstream.headers).forEach(([key, value]) => {
+        if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) res.setHeader(key, value);
+      });
+      return res.send(upstream.body);
+    } catch (err) {
+      return next(err);
+    }
+  }
+
+  const settings = getSettings();
 
   try {
     const user = await rw.getUserByShortUuid(shortUuid);
@@ -85,14 +132,16 @@ router.get('/:shortUuid', async (req, res, next) => {
 
     // Роутерным пользователям ключи и инструкция нужны всегда — обычным
     // пользователям это не нужно, поэтому не дёргаем лишний запрос к панели.
-    const rawKeys = showRouterTab ? await rw.getRawKeys(shortUuid) : [];
+    const rawKeys = showRouterTab ? await rw.getConnectionKeys(user.id) : [];
     const routerInstructionsHtml = showRouterTab
       ? marked.parse(settings.routerInstructionsMarkdown || '')
       : '';
 
     // Роутерным пользователям вкладку "Устройства" не показываем вообще —
     // только страницу настройки роутера (п.2.3 требований).
-    const appCards = showRouterTab ? [] : buildAppCards(settings.apps, subscriptionUrl, platform);
+    const appCards = showRouterTab
+      ? []
+      : await buildAppCards(settings.apps, subscriptionUrl, platform, settings.brandName);
 
     res.render('subscription', {
       settings,
