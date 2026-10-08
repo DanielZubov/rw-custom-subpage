@@ -67,6 +67,7 @@ h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
   font-size: 11px; background: var(--accent, #00d1b2); color: #08211d;
   padding: 2px 8px; border-radius: 999px; font-weight: 600;
 }
+.badge-muted { background: rgba(255,255,255,0.12); color: #f2f2f8; }
 .app-guide-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .app-guide-actions .btn { flex: 1; min-width: 140px; text-align: center; text-decoration: none; }
 

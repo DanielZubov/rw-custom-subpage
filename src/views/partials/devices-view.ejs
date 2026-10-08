@@ -17,6 +17,7 @@
         <div class="app-guide-head">
           <span class="app-guide-name"><%= app.name %></span>
           <% if (i === 0) { %><span class="badge">Рекомендуем</span><% } %>
+          <% if (app.encrypted) { %><span class="badge badge-muted">🔒 зашифровано</span><% } %>
         </div>
         <div class="app-guide-actions">
           <a class="btn btn-primary app-install-btn" href="<%= app.installUrl %>" target="_blank" rel="noopener">
@@ -39,5 +40,5 @@
     </div>
   <% } %>
 
-  <script type="application/json" id="apps-data"><%- JSON.stringify({ apps: settings.apps, subscriptionUrl: subscriptionUrl }).replace(/</g, '\\u003c') %></script>
+  <script type="application/json" id="apps-data"><%- JSON.stringify({ apps: settings.apps.map(function(a){ return { id: a.id, install: a.install }; }) }).replace(/</g, '\\u003c') %></script>
 </section>

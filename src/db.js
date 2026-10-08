@@ -14,6 +14,10 @@ const DEFAULT_APPS = [
     id: 'happ',
     name: 'Happ',
     addScheme: 'happ://add/{url}',
+    // Шифрует ссылку через официальный API crypto.happ.su (RSA-4096,
+    // happ://crypt4/...). При недоступности сервиса — тихий откат на
+    // обычный addScheme (plaintext add) без шифрования, страница не падает.
+    cryptoProvider: 'happ',
     install: {
       ios: 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215',
       android: 'https://play.google.com/store/apps/details?id=com.happproxy',
@@ -26,6 +30,12 @@ const DEFAULT_APPS = [
     id: 'incy',
     name: 'INCY',
     addScheme: 'incy://add/{url}',
+    // Шифрует ссылку локально (без сети) через npm-пакет @incy/link-encoder
+    // (crypt1, AES-256-GCM). Пакет не входит в обязательные зависимости —
+    // если не установлен, тихий откат на обычный addScheme. Чтобы включить
+    // шифрование: `npm install @incy/link-encoder` внутри проекта и
+    // пересобрать образ.
+    cryptoProvider: 'incy',
     install: {
       ios: 'https://apps.apple.com/app/incy/id6756943388',
       android: 'https://incy.cc/',
