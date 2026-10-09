@@ -2,21 +2,23 @@ services:
   rw-custom-subpage:
     build: .
     # Или, после первой публикации образа в свой registry:
-    # image: ghcr.io/your-org/rw-custom-subpage:latest
+    # image: ghcr.io/DanielZubov/rw-custom-subpage:latest
     container_name: rw-custom-subpage
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "3010:3010"
+      - "3011:3010"
     volumes:
       - ./data:/app/data
     networks:
-      - remnawave-network
+      - srv_proxy
 
 networks:
+  srv_proxy:
+    external: true
+    name: srv_proxy
   # Внешняя сеть, в которой уже живёт remnawave-backend — имя подставьте
   # своё (docker network ls | grep remnawave), либо уберите networks и
   # ports секции и подключитесь к панели по публичному https-адресу.
-  remnawave-network:
-    external: true
+
