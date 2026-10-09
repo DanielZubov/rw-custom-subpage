@@ -66,6 +66,31 @@
       </fieldset>
 
       <fieldset>
+        <legend>Домен и заголовки подписки (Happ / INCY)</legend>
+        <label>Домен в ссылке подписки (например, CDN)
+          <input type="text" name="subscriptionDomain" value="<%= settings.subscriptionDomain %>" placeholder="cdn.sub.example.com" />
+        </label>
+        <p class="hint">Попадает в кнопки «Добавить подписку», отображаемую ссылку и заголовок
+          <code>profile-web-page-url</code>. Пусто — используется <code>SUB_PUBLIC_DOMAIN</code> из <code>.env</code>.</p>
+
+        <label>Название подписки в приложении (profile-title)
+          <input type="text" name="profileTitle" value="<%= settings.profileTitle %>" />
+        </label>
+        <label>Объявление в приложении (announce)
+          <input type="text" name="announce" value="<%= settings.announce %>" />
+        </label>
+        <label>Интервал обновления, часы (profile-update-interval)
+          <input type="text" name="profileUpdateInterval" value="<%= settings.profileUpdateInterval %>" />
+        </label>
+        <label>Дополнительные заголовки (JSON)
+          <textarea name="customHeadersJson" rows="4"><%= settings.customHeadersJson %></textarea>
+        </label>
+        <p class="hint">Плейсхолдеры: <code>{brand}</code>, <code>{username}</code>. Пустые поля — заголовок
+          остаётся как отдала панель. Заголовки применяются к ответам для приложений (не для браузера).
+          Диагностика шифрования Happ: <a href="/admin/test-crypto" target="_blank">/admin/test-crypto</a>.</p>
+      </fieldset>
+
+      <fieldset>
         <legend>Вкладка «Устройства»</legend>
         <label class="checkbox-label">
           <input type="checkbox" name="showSubscriptionLinkOnDevicesTab" <%= settings.showSubscriptionLinkOnDevicesTab ? 'checked' : '' %> />

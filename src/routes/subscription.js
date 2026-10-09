@@ -2,6 +2,7 @@ const express = require('express');
 const { marked } = require('marked');
 const rw = require('../remnawaveClient');
 const cryptoLinks = require('../cryptoLinks');
+const { applyHeaderOverrides, needsUsername } = require('../headers');
 const { getSettings } = require('../db');
 
 const router = express.Router();
@@ -108,9 +109,28 @@ router.get('/:shortUuid', async (req, res, next) => {
         userAgent: req.headers['user-agent'],
         accept: req.headers['accept'],
       });
+      const settings = getSettings();
+      let headers = upstream.headers;
+      if (upstream.status === 200) {
+        let username = '';
+        if (needsUsername(settings)) {
+          try {
+            const u = await rw.getUserByShortUuid(shortUuid);
+            username = (u && u.username) || '';
+          } catch (e) {
+            console.error('[subscription] не удалось получить username для заголовков:', e.message);
+          }
+        }
+        headers = applyHeaderOverrides(headers, settings, { username, shortUuid });
+      }
       res.status(upstream.status);
-      Object.entries(upstream.headers).forEach(([key, value]) => {
-        if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) res.setHeader(key, value);
+      Object.entries(headers).forEach(([key, value]) => {
+        if (HOP_BY_HOP_HEADERS.has(key.toLowerCase())) return;
+        try {
+          res.setHeader(key, value);
+        } catch (e) {
+          console.error(`[subscription] заголовок ${key} пропущен: ${e.message}`);
+        }
       });
       return res.send(upstream.body);
     } catch (err) {
@@ -127,7 +147,7 @@ router.get('/:shortUuid', async (req, res, next) => {
     }
 
     const showRouterTab = isRouterUser(user, settings.routerKeyword);
-    const subscriptionUrl = rw.buildSubscriptionUrl(shortUuid);
+    const subscriptionUrl = rw.buildSubscriptionUrl(shortUuid, settings.subscriptionDomain);
     const platform = detectPlatform(req.headers['user-agent']);
 
     // Роутерным пользователям ключи и инструкция нужны всегда — обычным

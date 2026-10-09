@@ -5,6 +5,7 @@ const express = require('express');
 const basicAuth = require('express-basic-auth');
 const multer = require('multer');
 const config = require('../config');
+const { requestHappCrypto } = require('../cryptoLinks');
 const { getSettings, saveSettings, DEFAULT_SETTINGS, UPLOADS_DIR } = require('../db');
 
 const router = express.Router();
@@ -13,7 +14,7 @@ router.use(
   basicAuth({
     users: { [config.admin.login]: config.admin.password },
     challenge: true,
-    realm: 'LeonVPN Admin',
+    realm: 'MyVPN Admin',
   })
 );
 
@@ -39,6 +40,13 @@ const upload = multer({
     }
     cb(null, true);
   },
+});
+
+// Диагностика шифрования Happ: показывает сырой ответ crypto.happ.su
+router.get('/test-crypto', async (req, res) => {
+  const url = req.query.url || 'https://example.com/test';
+  const r = await requestHappCrypto(url);
+  res.type('text/plain').send(JSON.stringify({ testedUrl: url, ...r }, null, 2));
 });
 
 router.get('/', (req, res) => {
@@ -81,6 +89,19 @@ router.post(
       });
     }
 
+    if (body.customHeadersJson && body.customHeadersJson.trim()) {
+      try {
+        const parsed = JSON.parse(body.customHeadersJson);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('нужен объект');
+      } catch (e) {
+        return res.status(400).render('admin/dashboard', {
+          settings: getSettings(),
+          saved: false,
+          error: `Некорректный JSON доп. заголовков: ${e.message}`,
+        });
+      }
+    }
+
     // Файл, если загружен, побеждает текстовое поле со ссылкой.
     const logoFile = req.files && req.files.logoFile && req.files.logoFile[0];
     const faviconFile = req.files && req.files.faviconFile && req.files.faviconFile[0];
@@ -96,6 +117,11 @@ router.post(
       accentColor: body.accentColor || DEFAULT_SETTINGS.accentColor,
       supportUrl: body.supportUrl || '',
       footerText: body.footerText || '',
+      subscriptionDomain: (body.subscriptionDomain || '').trim(),
+      profileTitle: body.profileTitle || '',
+      profileUpdateInterval: (body.profileUpdateInterval || '').trim(),
+      announce: body.announce || '',
+      customHeadersJson: body.customHeadersJson || '',
       showSubscriptionLinkOnDevicesTab: body.showSubscriptionLinkOnDevicesTab === 'on',
       routerKeyword: body.routerKeyword || DEFAULT_SETTINGS.routerKeyword,
       routerInstructionsMarkdown: body.routerInstructionsMarkdown || '',
