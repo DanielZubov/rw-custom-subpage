@@ -9,7 +9,9 @@ const router = express.Router();
 
 // Короткий UUID Remnawave — обычный uuid v4. На всякий случай не пускаем
 // в API мусор из URL (например, запросы браузера на /favicon.ico).
-const SHORT_UUID_RE = /^[a-zA-Z0-9-]{6,64}$/;
+// shortUuid в Remnawave — это base64url (не «чистый» uuid v4),
+// поэтому алфавит: A-Z a-z 0-9 - _ (длина base64url от 16 байт UUID).
+const SHORT_UUID_RE = /^[a-zA-Z0-9_-]{6,64}$/;
 
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
