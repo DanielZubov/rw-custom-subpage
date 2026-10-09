@@ -67,8 +67,9 @@ const DEFAULT_SETTINGS = {
   subscriptionDomain: '',
 
   // Заголовки ответа подписки для приложений (Happ, INCY и др.).
-  // Применяются при проксировании подписки. Плейсхолдеры: {username}, {brand}.
-  profileTitle: '{brand}',
+  // Пустое поле = заголовок остаётся как отдала панель (её шаблоны работают).
+  // Поддерживается синтаксис панели: rwEncodeBase64:, {{DAYS_LEFT}}, {{STATUS:...}}.
+  profileTitle: '',
   profileUpdateInterval: '',   // часы; пусто = как отдаёт панель
   announce: '',                // Happ/INCY показывают как объявление
   customHeadersJson: '',       // доп. заголовки: {"Header-Name": "value"}
@@ -122,7 +123,14 @@ function ensureDirs() {
 function migrateApps(apps) {
   if (!Array.isArray(apps) || apps.length === 0) return DEFAULT_APPS;
   const looksNew = apps.every((a) => a && typeof a === 'object' && a.install && a.addScheme);
-  return looksNew ? apps : DEFAULT_APPS;
+  if (!looksNew) return DEFAULT_APPS;
+  // settings.json, сохранённый прошлой версией, не содержит cryptoProvider —
+  // достраиваем его по id (happ/incy). Значение "none" отключает шифрование.
+  return apps.map((a) => {
+    if (a.cryptoProvider !== undefined) return a;
+    const def = DEFAULT_APPS.find((d) => d.id === a.id);
+    return def && def.cryptoProvider ? { ...a, cryptoProvider: def.cryptoProvider } : a;
+  });
 }
 
 function getSettings() {
