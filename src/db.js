@@ -47,8 +47,8 @@ const DEFAULT_APPS = [
 ];
 
 const DEFAULT_SETTINGS = {
-  brandName: 'LeonVPN',
-  siteTitle: 'LeonVPN — моя подписка',
+  brandName: 'MyVPN',
+  siteTitle: 'MyVPN — моя подписка',
 
   // Логотип/favicon: либо внешняя ссылка, либо локально загруженный файл
   // (тогда тут будет путь вида /uploads/xxxxx.png — см. admin.js).
@@ -57,8 +57,21 @@ const DEFAULT_SETTINGS = {
 
   primaryColor: '#6C5CE7',
   accentColor: '#00D1B2',
-  supportUrl: 'https://t.me/leonvpn_support',
-  footerText: '© LeonVPN. Все ключи доступны только вам по персональной ссылке.',
+  supportUrl: 'https://t.me/myvpn_support',
+  footerText: '© MyVPN. Все ключи доступны только вам по персональной ссылке.',
+
+  // Домен, который попадает в ссылку подписки (кнопки "Добавить подписку",
+  // отображаемая ссылка, profile-web-page-url). Пусто = берём
+  // SUB_PUBLIC_DOMAIN из .env. Нужен, например, чтобы отдавать клиентам
+  // CDN-домен для обхода белых списков.
+  subscriptionDomain: '',
+
+  // Заголовки ответа подписки для приложений (Happ, INCY и др.).
+  // Применяются при проксировании подписки. Плейсхолдеры: {username}, {brand}.
+  profileTitle: '{brand}',
+  profileUpdateInterval: '',   // часы; пусто = как отдаёт панель
+  announce: '',                // Happ/INCY показывают как объявление
+  customHeadersJson: '',       // доп. заголовки: {"Header-Name": "value"}
 
   // Показывать ли сырую ссылку на подписку на вкладке "Устройства".
   // На вкладке "Роутер" ссылка показывается всегда — она нужна для Podkop/Forkop.

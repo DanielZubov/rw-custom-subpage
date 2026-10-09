@@ -1,7 +1,7 @@
 {
-  "name": "leonvpn-subpage",
+  "name": "rw-custom-subpage",
   "version": "1.0.0",
-  "description": "Кастомная страница подписки для Remnawave (LeonVPN) с фирменным оформлением и отдельной вкладкой для роутеров (OpenWRT / Podkop / Forkop)",
+  "description": "Кастомная страница подписки для Remnawave (MyVPN) с фирменным оформлением и отдельной вкладкой для роутеров (OpenWRT / Podkop / Forkop)",
   "private": true,
   "type": "commonjs",
   "engines": {

@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`LeonVPN subscription page слушает порт ${config.port}`);
+  console.log(`MyVPN subscription page слушает порт ${config.port}`);
   if (!config.remnawave.apiUrl || !config.remnawave.apiToken) {
     console.warn('[server] REMNAWAVE_API_URL / REMNAWAVE_API_TOKEN не заданы — страница подписки не будет работать, пока вы не заполните .env');
   }

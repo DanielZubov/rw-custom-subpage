@@ -1,4 +1,4 @@
-# LeonVPN Subscription Page
+# MyVPN Subscription Page
 
 Кастомная замена штатной `remnawave/subscription-page` для панели
 [Remnawave](https://remna.st). Сохраняет всю базовую логику (ссылка на
@@ -72,8 +72,9 @@ HTML. Поэтому сервис не просто рисует страниц�
 ## Быстрый старт
 
 ```bash
-git clone <этот репозиторий>
-cd leonvpn-subpage
+cd /opt
+git clone https://github.com/DanielZubov/rw-custom-subpage.git
+cd rw-custom-subpage
 cp .env.example .env
 # отредактируйте .env: REMNAWAVE_API_URL, REMNAWAVE_API_TOKEN, SUB_PUBLIC_DOMAIN,
 # ADMIN_LOGIN / ADMIN_PASSWORD
@@ -93,7 +94,7 @@ docker compose up -d --build
 ### Подключение к сети Remnawave
 
 Если панель и этот сервис — в одном docker-compose проекте, добавьте
-`leonvpn-subpage` в тот же `docker-compose.yml`, что и `remnawave`, и укажите
+`rw-custom-subpage` в тот же `docker-compose.yml`, что и `remnawave`, и укажите
 `REMNAWAVE_API_URL=http://remnawave:3000` (имя контейнера панели во внутренней
 сети). Если это отдельный проект — используйте `external network` (см.
 `docker-compose.yml` в репозитории) или публичный HTTPS-адрес панели.
@@ -102,17 +103,42 @@ docker compose up -d --build
 
 В настройках вашего Caddy/Nginx, где раньше запросы браузера на
 `SUB_PUBLIC_DOMAIN` проксировались на `remnawave-subscription-page:3010`,
-поменяйте upstream на `leonvpn-subpage:3010`. Пример для Caddy:
+поменяйте upstream на `rw-custom-subpage:3010`. Пример для Caddy:
 
 ```caddyfile
-sub.leonvpn.example {
-    reverse_proxy leonvpn-subpage:3010
+sub.example.com {
+    reverse_proxy rw-custom-subpage:3010
 }
 ```
 
 Запросы не от браузера (по `User-Agent` от Xray-клиентов, Happ, Podkop и
 т.п.) панель Remnawave, как и раньше, обслуживает сама по `/api/sub/...` —
 их трогать не нужно.
+
+## Домен и заголовки подписки (CDN, Happ, INCY)
+
+В `/admin` → «Домен и заголовки подписки»:
+
+- **Домен в ссылке подписки** — подставляется в кнопки «Добавить подписку»,
+  отображаемую ссылку и заголовок `profile-web-page-url`. Удобно, когда клиентам
+  нужно отдавать CDN-домен (например, `cdn.sub.example.com`) для обхода белых
+  списков. Пусто — берётся `SUB_PUBLIC_DOMAIN` из `.env`.
+- **profile-title, announce, profile-update-interval** — переписываются в ответе
+  для приложений (Happ, INCY и др.). Плейсхолдеры: `{brand}`, `{username}`.
+  Пустое поле — заголовок остаётся как отдала панель.
+- **Дополнительные заголовки (JSON)** — любые свои, например
+  `{"support-url": "https://t.me/myvpn_support"}`.
+
+Эти заголовки применяются только при проксировании подписки приложениям, не к
+HTML-странице. Домен, указанный в настройках, должен вести на этот сервис (или
+на панель) — иначе приложение не получит конфиг.
+
+### Диагностика шифрования Happ
+
+Если кнопка «Добавить подписку» для Happ отдаёт незашифрованную ссылку,
+откройте `/admin/test-crypto` — там виден сырой ответ `crypto.happ.su`
+(статус, content-type, тело) и причина сбоя. Те же данные пишутся в лог
+контейнера со строкой `[cryptoLinks]`.
 
 ## Шифрованные ссылки «Добавить подписку»
 

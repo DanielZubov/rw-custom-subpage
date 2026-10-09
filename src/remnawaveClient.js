@@ -69,9 +69,13 @@ async function getConnectionKeys(userId) {
   return (data.enabledKeys || []).filter((k) => typeof k === 'string' && k.trim().length > 0);
 }
 
-function buildSubscriptionUrl(shortUuid) {
-  if (!config.remnawave.subPublicDomain) return '';
-  return `https://${config.remnawave.subPublicDomain}/${shortUuid}`;
+// domainOverride — домен из настроек админки (например, CDN-домен для обхода
+// белых списков). Если задан, он важнее SUB_PUBLIC_DOMAIN из .env.
+function buildSubscriptionUrl(shortUuid, domainOverride) {
+  const domain = (domainOverride || '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '')
+    || config.remnawave.subPublicDomain;
+  if (!domain) return '';
+  return `https://${domain}/${shortUuid}`;
 }
 
 // Заголовки, которые нельзя слепо копировать между upstream- и downstream-
