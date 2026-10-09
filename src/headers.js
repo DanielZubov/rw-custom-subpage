@@ -6,13 +6,8 @@
  *   rwEncodeBase64:Текст {{DAYS_LEFT}} д.     — результат кодируется в base64:...
  *   {{STATUS:ACTIVE=Активна|EXPIRED=Истекла|DISABLED=Отключена|LIMITED=Лимит}}
  *
-<<<<<<< HEAD
  * Переменные — те же, что в панели (DAYS_LEFT, TRAFFIC_LEFT, TOTAL_TRAFFIC, EXPIRE_UNIX,
  * NEXT_TRAFFIC_RESET_AT и т.д., см. buildVars) + BRAND, EXPIRE_DATE.
-=======
- * Переменные: DAYS_LEFT, USERNAME, EMAIL, TELEGRAM_ID, TAG, STATUS,
- * TRAFFIC_USED, TRAFFIC_LIMIT, EXPIRE_DATE, SUBSCRIPTION_URL, SHORT_UUID, BRAND.
->>>>>>> ebaca8d9d453828eb4f5f28d405e7496f786907e
  * Устаревшие {username} и {brand} тоже работают.
  * Пустое поле в настройках = заголовок остаётся как отдала панель.
  */
@@ -29,7 +24,6 @@ function fmtBytes(bytes) {
   return `${gb.toFixed(gb >= 100 ? 0 : 1)} GB`;
 }
 
-<<<<<<< HEAD
 function unix(d) {
   return d ? String(Math.floor(d.getTime() / 1000)) : '';
 }
@@ -88,24 +82,6 @@ function buildVars(settings, ctx) {
     NEXT_TRAFFIC_RESET_AT: fmtDate(next),
     SS_HWID_LIMIT: u.hwidDeviceLimit != null ? String(u.hwidDeviceLimit) : '',
     DESCRIPTION: u.description || '',
-=======
-function buildVars(settings, ctx) {
-  const u = ctx.user || {};
-  const expire = u.expireAt ? new Date(u.expireAt) : null;
-  const daysLeft = expire ? Math.max(0, Math.ceil((expire.getTime() - Date.now()) / 86400000)) : '∞';
-  return {
-    DAYS_LEFT: String(daysLeft),
-    USERNAME: u.username || '',
-    EMAIL: u.email || '',
-    TELEGRAM_ID: u.telegramId != null ? String(u.telegramId) : '',
-    TAG: u.tag || '',
-    STATUS: u.status || '',
-    TRAFFIC_USED: fmtBytes(u.usedTrafficBytes),
-    TRAFFIC_LIMIT: u.trafficLimitBytes ? fmtBytes(u.trafficLimitBytes) : '∞',
-    EXPIRE_DATE: expire ? expire.toLocaleDateString('ru-RU') : '∞',
-    SUBSCRIPTION_URL: ctx.subscriptionUrl || '',
-    SHORT_UUID: ctx.shortUuid || '',
->>>>>>> ebaca8d9d453828eb4f5f28d405e7496f786907e
     BRAND: settings.brandName || '',
   };
 }
