@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data:/app/data
     networks:
-      - remnawave-network
+      - srv_proxy
 
 networks:
   # Внешняя сеть, в которой уже живёт remnawave-backend — имя подставьте
