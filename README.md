@@ -124,7 +124,7 @@ sub.example.com {
   нужно отдавать CDN-домен (например, `cdn.sub.example.com`) для обхода белых
   списков. Пусто — берётся `SUB_PUBLIC_DOMAIN` из `.env`.
 - **profile-title, announce, profile-update-interval** — переписываются в ответе
-  для приложений (Happ, INCY и др.). Плейсхолдеры: `{brand}`, `{username}`.
+  для приложений (Happ, INCY и др.). Поддерживается синтаксис шаблонов панели: `rwEncodeBase64:`, `{{DAYS_LEFT}}`, `{{USERNAME}}`, `{{STATUS:ACTIVE=...|EXPIRED=...}}` и др.
   Пустое поле — заголовок остаётся как отдала панель.
 - **Дополнительные заголовки (JSON)** — любые свои, например
   `{"support-url": "https://t.me/myvpn_support"}`.

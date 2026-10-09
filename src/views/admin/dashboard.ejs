@@ -85,8 +85,13 @@
         <label>Дополнительные заголовки (JSON)
           <textarea name="customHeadersJson" rows="4"><%= settings.customHeadersJson %></textarea>
         </label>
-        <p class="hint">Плейсхолдеры: <code>{brand}</code>, <code>{username}</code>. Пустые поля — заголовок
-          остаётся как отдала панель. Заголовки применяются к ответам для приложений (не для браузера).
+        <p class="hint">Синтаксис как в панели Remnawave: <code>rwEncodeBase64:</code> в начале (для profile-title и announce
+          кодирование в base64 включено автоматически), переменные <code>{{DAYS_LEFT}}</code>, <code>{{USERNAME}}</code>,
+          <code>{{EMAIL}}</code>, <code>{{TELEGRAM_ID}}</code>, <code>{{TAG}}</code>, <code>{{STATUS}}</code>,
+          <code>{{TRAFFIC_USED}}</code>, <code>{{TRAFFIC_LIMIT}}</code>, <code>{{EXPIRE_DATE}}</code>,
+          <code>{{SUBSCRIPTION_URL}}</code>, <code>{{STATUS:ACTIVE=Активна|EXPIRED=Истекла|DISABLED=Отключена|LIMITED=Лимит}}</code>.
+          <b>Пустое поле — заголовок остаётся как отдала панель</b> (ваши шаблоны из раздела «Заголовки ответа» продолжат работать).
+          Заголовки применяются к ответам для приложений, не к HTML-странице.
           Диагностика шифрования Happ: <a href="/admin/test-crypto" target="_blank">/admin/test-crypto</a>.</p>
       </fieldset>
 

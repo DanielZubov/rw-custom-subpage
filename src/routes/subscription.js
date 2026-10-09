@@ -2,7 +2,7 @@ const express = require('express');
 const { marked } = require('marked');
 const rw = require('../remnawaveClient');
 const cryptoLinks = require('../cryptoLinks');
-const { applyHeaderOverrides, needsUsername } = require('../headers');
+const { applyHeaderOverrides, needsUser } = require('../headers');
 const { getSettings } = require('../db');
 
 const router = express.Router();
@@ -78,11 +78,15 @@ async function buildAppCards(apps, subscriptionUrl, platform, brandName) {
 
       let addUrl = plainAddUrl;
       let encrypted = false;
+      const provider =
+        app.cryptoProvider !== undefined
+          ? app.cryptoProvider
+          : (['happ', 'incy'].includes(app.id) ? app.id : null);
 
-      if (subscriptionUrl && app.cryptoProvider === 'happ') {
+      if (subscriptionUrl && provider === 'happ') {
         const crypt = await cryptoLinks.getHappCryptLink(subscriptionUrl);
         if (crypt) { addUrl = crypt; encrypted = true; }
-      } else if (subscriptionUrl && app.cryptoProvider === 'incy') {
+      } else if (subscriptionUrl && provider === 'incy') {
         const crypt = cryptoLinks.getIncyCryptLink(subscriptionUrl, brandName);
         if (crypt) { addUrl = crypt; encrypted = true; }
       }
@@ -112,16 +116,19 @@ router.get('/:shortUuid', async (req, res, next) => {
       const settings = getSettings();
       let headers = upstream.headers;
       if (upstream.status === 200) {
-        let username = '';
-        if (needsUsername(settings)) {
+        let user = null;
+        if (needsUser(settings)) {
           try {
-            const u = await rw.getUserByShortUuid(shortUuid);
-            username = (u && u.username) || '';
+            user = await rw.getUserByShortUuid(shortUuid);
           } catch (e) {
-            console.error('[subscription] не удалось получить username для заголовков:', e.message);
+            console.error('[subscription] не удалось получить пользователя для заголовков:', e.message);
           }
         }
-        headers = applyHeaderOverrides(headers, settings, { username, shortUuid });
+        headers = applyHeaderOverrides(headers, settings, {
+          user,
+          shortUuid,
+          subscriptionUrl: rw.buildSubscriptionUrl(shortUuid, settings.subscriptionDomain),
+        });
       }
       res.status(upstream.status);
       Object.entries(headers).forEach(([key, value]) => {

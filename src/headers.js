@@ -1,36 +1,85 @@
 /**
  * Переписывает служебные заголовки подписки, которые читают VPN-клиенты
- * (Happ, INCY и др.): profile-title, announce, profile-update-interval,
- * profile-web-page-url, support-url + произвольные из настроек.
- * Всё, что не задано в настройках, остаётся как отдала панель.
+ * (Happ, INCY и др.). Поддерживает тот же синтаксис шаблонов, что и раздел
+ * «Заголовки ответа» в панели Remnawave:
+ *
+ *   rwEncodeBase64:Текст {{DAYS_LEFT}} д.     — результат кодируется в base64:...
+ *   {{STATUS:ACTIVE=Активна|EXPIRED=Истекла|DISABLED=Отключена|LIMITED=Лимит}}
+ *
+ * Переменные: DAYS_LEFT, USERNAME, EMAIL, TELEGRAM_ID, TAG, STATUS,
+ * TRAFFIC_USED, TRAFFIC_LIMIT, EXPIRE_DATE, SUBSCRIPTION_URL, SHORT_UUID, BRAND.
+ * Устаревшие {username} и {brand} тоже работают.
+ * Пустое поле в настройках = заголовок остаётся как отдала панель.
  */
+
+const ENCODE_PREFIX = 'rwEncodeBase64:';
 
 function b64(text) {
   return `base64:${Buffer.from(text, 'utf8').toString('base64')}`;
 }
 
-function fill(template, ctx) {
-  return String(template || '')
-    .replace(/\{username\}/g, ctx.username || '')
-    .replace(/\{brand\}/g, ctx.brand || '')
-    .trim();
+function fmtBytes(bytes) {
+  if (!bytes || bytes <= 0) return '0 GB';
+  const gb = bytes / 1024 / 1024 / 1024;
+  return `${gb.toFixed(gb >= 100 ? 0 : 1)} GB`;
 }
 
-function needsUsername(settings) {
+function buildVars(settings, ctx) {
+  const u = ctx.user || {};
+  const expire = u.expireAt ? new Date(u.expireAt) : null;
+  const daysLeft = expire ? Math.max(0, Math.ceil((expire.getTime() - Date.now()) / 86400000)) : '∞';
+  return {
+    DAYS_LEFT: String(daysLeft),
+    USERNAME: u.username || '',
+    EMAIL: u.email || '',
+    TELEGRAM_ID: u.telegramId != null ? String(u.telegramId) : '',
+    TAG: u.tag || '',
+    STATUS: u.status || '',
+    TRAFFIC_USED: fmtBytes(u.usedTrafficBytes),
+    TRAFFIC_LIMIT: u.trafficLimitBytes ? fmtBytes(u.trafficLimitBytes) : '∞',
+    EXPIRE_DATE: expire ? expire.toLocaleDateString('ru-RU') : '∞',
+    SUBSCRIPTION_URL: ctx.subscriptionUrl || '',
+    SHORT_UUID: ctx.shortUuid || '',
+    BRAND: settings.brandName || '',
+  };
+}
+
+// Возвращает { text, encode } — encode=true, если шаблон начинался с rwEncodeBase64:
+function render(template, vars) {
+  let t = String(template || '').trim();
+  let encode = false;
+  if (t.startsWith(ENCODE_PREFIX)) {
+    encode = true;
+    t = t.slice(ENCODE_PREFIX.length);
+  }
+  // {{STATUS:ACTIVE=...|EXPIRED=...}}
+  t = t.replace(/\{\{\s*STATUS:([^}]*)\}\}/g, (m, map) => {
+    for (const part of map.split('|')) {
+      const idx = part.indexOf('=');
+      if (idx > 0 && part.slice(0, idx).trim() === vars.STATUS) return part.slice(idx + 1);
+    }
+    return '';
+  });
+  t = t.replace(/\{\{\s*([A-Z_]+)\s*\}\}/g, (m, key) => (key in vars ? vars[key] : m));
+  t = t.replace(/\{username\}/g, vars.USERNAME).replace(/\{brand\}/g, vars.BRAND);
+  return { text: t.trim(), encode };
+}
+
+function needsUser(settings) {
   return [settings.profileTitle, settings.announce, settings.customHeadersJson].some(
-    (v) => typeof v === 'string' && v.includes('{username}')
+    (v) => typeof v === 'string' && (v.includes('{{') || v.includes('{username}'))
   );
 }
 
 function applyHeaderOverrides(headers, settings, ctx) {
   const out = { ...headers };
-  const c = { username: ctx.username, brand: settings.brandName };
+  const vars = buildVars(settings, ctx);
 
-  const title = fill(settings.profileTitle, c);
-  if (title) out['profile-title'] = b64(title);
-
-  const announce = fill(settings.announce, c);
-  if (announce) out['announce'] = b64(announce);
+  // profile-title и announce всегда уходят в base64 (в них бывают эмодзи/кириллица)
+  [['profile-title', settings.profileTitle], ['announce', settings.announce]].forEach(([name, tpl]) => {
+    const r = render(tpl, vars);
+    if (r.text) out[name] = r.text.startsWith('base64:') ? r.text : b64(r.text);
+  });
 
   const interval = String(settings.profileUpdateInterval || '').trim();
   if (interval) out['profile-update-interval'] = interval;
@@ -38,14 +87,13 @@ function applyHeaderOverrides(headers, settings, ctx) {
   const domain = (settings.subscriptionDomain || '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
   if (domain) out['profile-web-page-url'] = `https://${domain}/${ctx.shortUuid}`;
 
-  if (settings.supportUrl) out['support-url'] = settings.supportUrl;
-
   if (settings.customHeadersJson && settings.customHeadersJson.trim()) {
     try {
       const custom = JSON.parse(settings.customHeadersJson);
       Object.entries(custom).forEach(([k, v]) => {
-        const val = fill(v, c);
-        if (val) out[k.toLowerCase()] = val;
+        const r = render(v, vars);
+        if (!r.text) return;
+        out[k.toLowerCase()] = r.encode ? b64(r.text) : r.text;
       });
     } catch (e) {
       console.error('[headers] customHeadersJson некорректен:', e.message);
@@ -54,4 +102,4 @@ function applyHeaderOverrides(headers, settings, ctx) {
   return out;
 }
 
-module.exports = { applyHeaderOverrides, needsUsername };
+module.exports = { applyHeaderOverrides, needsUser };
