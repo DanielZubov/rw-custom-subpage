@@ -117,16 +117,32 @@ sub.example.com {
 
 ## Загрузка логотипа: ошибка 413
 
-`413 Request Entity Too Large` отдаёт реверс-прокси, а не приложение (поэтому в
-логах контейнера пусто — запрос до приложения не доходит). По умолчанию nginx
-принимает тело запроса до 1 МБ. Увеличьте лимит (приложение принимает файлы до 2 МБ):
+`413 Request Entity Too Large` приходит не от приложения (оно принимает файлы до
+2 МБ и в этом случае пишет строку в `docker logs`), а от какого-то прокси на пути
+запроса. Если в логах контейнера пусто — запрос до него не дошёл.
 
-```nginx
-client_max_body_size 5m;
+Traefik сам по себе размер тела не ограничивает (только если вы не добавили
+middleware `buffering` с `maxRequestBodyBytes`). Страницу с надписью nginx
+отдаёт другой прокси перед Traefik или вместо него: nginx на хосте, Nginx Proxy
+Manager, CDN-узел для домена вида `cdn.sub.example.com` и т.п.
+
+Как найти виновника — отправьте тестовый файл и посмотрите заголовки ответа:
+
+```bash
+head -c 3000000 /dev/zero > /tmp/big.bin
+curl -s -D - -o /dev/null -u ADMIN_LOGIN:ADMIN_PASSWORD \
+  -F "logoFile=@/tmp/big.bin;type=image/png" https://ВАШ-ДОМЕН/admin
 ```
 
-В Nginx Proxy Manager — Advanced → Custom Nginx Configuration. В админке файлы
-больше 900 КБ отсекаются ещё до отправки формы.
+- `HTTP/2 400` и `x-powered-by: Express` — запрос дошёл до приложения (файл
+  больше 2 МБ, это нормальный отказ приложения), прокси на пути ни при чём;
+- `413` и `server: nginx` (или `cloudflare`) — лимит стоит на этом прокси:
+  добавьте в его конфиг `client_max_body_size 5m;` (в Nginx Proxy Manager —
+  Advanced → Custom Nginx Configuration).
+
+Быстрый обходной путь: открыть админку напрямую, минуя все прокси —
+`http://IP-сервера:3011/admin` (порт из `docker-compose.yml`). Файлы больше
+900 КБ в форме отсекаются ещё до отправки.
 
 ## Домен и заголовки подписки (CDN, Happ, INCY)
 

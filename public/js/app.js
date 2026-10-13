@@ -42,16 +42,20 @@ document.addEventListener('DOMContentLoaded', function () {
     wrap.className = 'code-wrap';
     pre.parentNode.insertBefore(wrap, pre);
     wrap.appendChild(pre);
+    var ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn btn-secondary code-copy';
-    btn.textContent = 'Копировать';
+    btn.title = 'Копировать';
+    btn.setAttribute('aria-label', 'Копировать');
+    btn.innerHTML = ICON_COPY;
     wrap.appendChild(btn);
     btn.addEventListener('click', function () {
       var text = pre.innerText.replace(/\s+$/, '');
       var done = function () {
-        btn.textContent = 'Скопировано ✓';
-        setTimeout(function () { btn.textContent = 'Копировать'; }, 1500);
+        btn.innerHTML = ICON_OK;
+        setTimeout(function () { btn.innerHTML = ICON_COPY; }, 1500);
       };
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(done);

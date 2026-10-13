@@ -101,7 +101,14 @@ h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
 .alert-success { background: rgba(0,209,178,0.15); border: 1px solid rgba(0,209,178,0.4); }
 .alert-error { background: rgba(255,92,92,0.15); border: 1px solid rgba(255,92,92,0.4); }
 
-/* Кнопка "Копировать" у блоков кода */
-.code-wrap { position: relative; }
-.code-wrap .code-copy { position: absolute; top: 8px; right: 8px; padding: 4px 10px; font-size: 12px; }
-.code-wrap pre { padding-right: 110px; }
+/* Кнопка-иконка "Копировать" рядом с блоком кода */
+.code-wrap { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0; }
+.code-wrap pre {
+  flex: 1; min-width: 0; margin: 0;
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all; overflow-x: hidden;
+}
+.code-wrap .code-copy {
+  flex: 0 0 auto; width: 38px; height: 38px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.code-wrap .code-copy svg { width: 18px; height: 18px; }
