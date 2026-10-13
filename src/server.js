@@ -8,6 +8,21 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+// Лог запросов в stdout контейнера (docker logs). Токен подписки маскируем.
+app.use((req, res, next) => {
+  if (req.path.startsWith('/static') || req.path.startsWith('/uploads') || req.path === '/healthz') {
+    return next();
+  }
+  const started = Date.now();
+  res.on('finish', () => {
+    const known = req.path === '/' || req.path.startsWith('/admin');
+    const shown = known ? req.path : req.path.replace(/^\/([A-Za-z0-9_-]{3})[^/]*/, '/$1***');
+    const ua = (req.headers['user-agent'] || '-').slice(0, 60);
+    console.log(`${req.method} ${shown} ${res.statusCode} ${Date.now() - started}ms ua="${ua}"`);
+  });
+  next();
+});
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 

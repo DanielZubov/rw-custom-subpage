@@ -100,3 +100,8 @@ h2 { font-size: 16px; margin: 24px 0 8px; opacity: 0.9; }
 .alert { padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
 .alert-success { background: rgba(0,209,178,0.15); border: 1px solid rgba(0,209,178,0.4); }
 .alert-error { background: rgba(255,92,92,0.15); border: 1px solid rgba(255,92,92,0.4); }
+
+/* Кнопка "Копировать" у блоков кода */
+.code-wrap { position: relative; }
+.code-wrap .code-copy { position: absolute; top: 8px; right: 8px; padding: 4px 10px; font-size: 12px; }
+.code-wrap pre { padding-right: 110px; }

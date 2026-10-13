@@ -30,7 +30,7 @@
           <input type="url" name="logoUrl" value="<%= settings.logoUrl.startsWith('/uploads/') ? '' : settings.logoUrl %>" placeholder="https://.../logo.png" />
         </label>
         <label>...или загрузить файл (заменит ссылку выше)
-          <input type="file" name="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+          <input type="file" name="logoFile" data-max-kb="900" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
         </label>
         <% if (settings.logoUrl) { %>
           <p class="hint">Текущий логотип: <img src="<%= settings.logoUrl %>" alt="" style="height:28px;vertical-align:middle;border-radius:6px;margin-left:6px;" /></p>
@@ -40,11 +40,14 @@
           <input type="url" name="faviconUrl" value="<%= settings.faviconUrl.startsWith('/uploads/') ? '' : settings.faviconUrl %>" placeholder="https://.../favicon.png" />
         </label>
         <label>...или загрузить файл (заменит ссылку выше)
-          <input type="file" name="faviconFile" accept="image/png,image/x-icon,image/svg+xml" />
+          <input type="file" name="faviconFile" data-max-kb="900" accept="image/png,image/x-icon,image/svg+xml" />
         </label>
         <% if (settings.faviconUrl) { %>
           <p class="hint">Текущий favicon: <img src="<%= settings.faviconUrl %>" alt="" style="height:20px;vertical-align:middle;border-radius:4px;margin-left:6px;" /></p>
         <% } %>
+
+        <p class="hint">Файлы до 2 МБ. Если при сохранении nginx отвечает «413 Request Entity Too Large» —
+          добавьте в его конфиг <code>client_max_body_size 5m;</code> (см. README).</p>
 
         <label>Основной цвет
           <input type="color" name="primaryColor" value="<%= settings.primaryColor %>" />

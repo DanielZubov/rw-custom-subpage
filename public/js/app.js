@@ -36,6 +36,51 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Кнопка "Копировать" у каждого блока кода в инструкциях (markdown <pre>)
+  document.querySelectorAll('.markdown-body pre').forEach(function (pre) {
+    var wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-secondary code-copy';
+    btn.textContent = 'Копировать';
+    wrap.appendChild(btn);
+    btn.addEventListener('click', function () {
+      var text = pre.innerText.replace(/\s+$/, '');
+      var done = function () {
+        btn.textContent = 'Скопировано ✓';
+        setTimeout(function () { btn.textContent = 'Копировать'; }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+
+  // Админка: предупреждаем о слишком большом файле ДО отправки формы
+  // (иначе реверс-прокси отвечает 413, и приложение даже не видит запрос).
+  document.querySelectorAll('input[type=file][data-max-kb]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      var max = parseInt(input.getAttribute('data-max-kb'), 10);
+      if (f && f.size > max * 1024) {
+        alert('Файл ' + Math.round(f.size / 1024) + ' КБ — больше ' + max + ' КБ. ' +
+          'Уменьшите изображение или увеличьте client_max_body_size в реверс-прокси.');
+        input.value = '';
+      }
+    });
+  });
+
   // Копирование в буфер обмена
   document.querySelectorAll('[data-copy]').forEach(function (btn) {
     btn.addEventListener('click', function () {

@@ -2,7 +2,7 @@ services:
   rw-custom-subpage:
     build: .
     # Или, после первой публикации образа в свой registry:
-    # image: ghcr.io/your-org/rw-custom-subpage:latest
+    # image: ghcr.io/DanielZubov/rw-custom-subpage:latest
     container_name: rw-custom-subpage
     restart: unless-stopped
     env_file:
