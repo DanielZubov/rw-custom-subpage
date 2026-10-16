@@ -31,10 +31,8 @@ const DEFAULT_APPS = [
     name: 'INCY',
     addScheme: 'incy://add/{url}',
     // Шифрует ссылку локально (без сети) через npm-пакет @incy/link-encoder
-    // (crypt1, AES-256-GCM). Пакет не входит в обязательные зависимости —
-    // если не установлен, тихий откат на обычный addScheme. Чтобы включить
-    // шифрование: `npm install @incy/link-encoder` внутри проекта и
-    // пересобрать образ.
+    // (crypt1, AES-256-GCM). Пакет ставится при сборке образа
+    // (optionalDependencies); если не поставился — тихий откат на обычный addScheme.
     cryptoProvider: 'incy',
     install: {
       ios: 'https://apps.apple.com/app/incy/id6756943388',

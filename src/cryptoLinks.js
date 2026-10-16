@@ -104,7 +104,9 @@ async function getHappCryptLink(subscriptionUrl) {
 
 /**
  * INCY: crypt1 (AES-256-GCM), локально, через npm-пакет @incy/link-encoder.
- * Пакет опциональный: `npm install @incy/link-encoder` и пересборка образа.
+ * Пакет указан в optionalDependencies и ставится при сборке образа. Если установка
+ * не удалась (нет сети до npm), сборка не падает, а INCY-ссылки откатываются на
+ * обычные незашифрованные.
  */
 let incyEncoder = null;
 function loadIncyEncoder() {
