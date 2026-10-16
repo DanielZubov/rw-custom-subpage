@@ -112,8 +112,8 @@ router.get('/:shortUuid', async (req, res, next) => {
   if (!isBrowserUA(req.headers['user-agent'])) {
     try {
       const upstream = await rw.proxyRawSubscription(shortUuid, {
-        userAgent: req.headers['user-agent'],
-        accept: req.headers['accept'],
+        headers: req.headers,
+        remoteAddress: req.socket.remoteAddress,
       });
       const settings = getSettings();
       let headers = upstream.headers;

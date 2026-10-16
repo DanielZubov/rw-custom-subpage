@@ -95,16 +95,47 @@ const HOP_BY_HOP_HEADERS = new Set([
  * (не браузеры) получают настоящий конфиг от панели (с её Content-Type и
  * служебными заголовками вроде profile-title), а не нашу HTML-страницу.
  */
-async function proxyRawSubscription(shortUuid, { userAgent, accept } = {}) {
+// Заголовки запроса, которые НЕ пробрасываем панели.
+const SKIP_REQUEST_HEADERS = new Set([
+  'host', 'connection', 'keep-alive', 'transfer-encoding', 'content-length', 'content-encoding',
+  'accept-encoding', 'upgrade', 'te', 'trailer', 'proxy-authorization', 'proxy-connection',
+  'cookie', 'authorization',
+  // пересобираем сами ниже
+  'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host', 'x-forwarded-port', 'x-real-ip',
+]);
+
+/**
+ * Собирает заголовки запроса к панели из заголовков реального клиента.
+ * Панель принимает решения по ним: x-hwid / x-device-os / x-device-model /
+ * x-ver-os (лимит устройств HWID), User-Agent (формат ответа), IP клиента
+ * (история запросов). Если их не передать, панель видит безымянный запрос
+ * и может вернуть заглушку «Ой-ой, что-то пошло не так».
+ */
+function buildUpstreamHeaders(incoming = {}, remoteAddress = '') {
+  const out = {};
+  Object.entries(incoming).forEach(([key, value]) => {
+    const k = key.toLowerCase();
+    if (SKIP_REQUEST_HEADERS.has(k) || value === undefined) return;
+    out[k] = Array.isArray(value) ? value.join(', ') : String(value);
+  });
+
+  const chain = [incoming['x-forwarded-for'], remoteAddress].filter(Boolean).join(', ');
+  const clientIp =
+    incoming['cf-connecting-ip'] || incoming['x-real-ip'] || (chain.split(',')[0] || '').trim();
+  if (chain) out['x-forwarded-for'] = chain;
+  if (clientIp) out['x-real-ip'] = clientIp;
+  // Панель требует признак HTTPS от реверс-прокси.
+  out['x-forwarded-proto'] = 'https';
+  return out;
+}
+
+async function proxyRawSubscription(shortUuid, { headers: incoming, remoteAddress } = {}) {
   if (!config.remnawave.apiUrl) {
     throw new Error('REMNAWAVE_API_URL не задан в .env');
   }
   const url = `${config.remnawave.apiUrl}/api/sub/${encodeURIComponent(shortUuid)}`;
   const upstream = await fetch(url, {
-    headers: {
-      ...(userAgent ? { 'User-Agent': userAgent } : {}),
-      ...(accept ? { Accept: accept } : {}),
-    },
+    headers: buildUpstreamHeaders(incoming, remoteAddress),
   });
   const body = Buffer.from(await upstream.arrayBuffer());
   const headers = {};
