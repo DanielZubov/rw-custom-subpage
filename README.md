@@ -1,4 +1,4 @@
-# Remnawave Custom Subscription Page
+# RW-CSP (Remnawave Custom Subscription Page)
 
 Кастомная замена штатной `remnawave/subscription-page` для панели
 [Remnawave](https://remna.st). Сохраняет всю базовую логику (ссылка на
