@@ -14,7 +14,7 @@ router.use(
   basicAuth({
     users: { [config.admin.login]: config.admin.password },
     challenge: true,
-    realm: 'MyVPN Admin',
+    realm: 'rw-custom-subpage admin',
   })
 );
 
